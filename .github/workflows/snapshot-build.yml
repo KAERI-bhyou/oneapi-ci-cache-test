@@ -33,15 +33,33 @@ jobs:
 
     - name: Install Buildtools
       if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      run: .github/workflows/scripts/install_buildtools.bat $NINJA_VERSION $VCPKG_VERSION
+      run: |
+        mkdir C:\opt\ninja
+        cd C:\opt\ninja
+        curl -SL --output ninja-win.zip https://github.com/ninja-build/ninja/releases/download/v${{ env.NINJA_VERSION }}/ninja-win.zip
+        tar -xf ninja-win.zip
+        mkdir C:\opt\vcpkg
+        cd C:\opt\vcpkg
+        curl -SL --output vcpkg.zip https://github.com/microsoft/vcpkg/archive/refs/tags/${{ env.VCPKG_VERSION }}.zip
+        tar -xf vcpkg.zip --strip-components=1
+        bootstrap-vcpkg.bat -disableMetrics
+        setx PATH "C:\opt\cmake\bin;C:\opt\ninja;C:\opt\vcpkg;%PATH%"
+        setx VCPKG_ROOT "C:\opt\vcpkg"
 
     - name: Install oneAPI
       if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      run: .github/workflows/scripts/install_oneapi.bat $BASEKIT_ID $BASEKIT_NAME $HPCKIT_ID $HPCKIT_NAME
+      run: |
+        curl -SL --output oneapi_basekit.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/${{ env.BASEKIT_ID }}/${{ env.BASEKIT_NAME }}.exe
+        oneapi_basekit.exe --silent --extract-only --extract-folder basekit_extracted
+        basekit_extracted\bootstrapper.exe --silent --eula=accept --action=install --components=intel.oneapi.win.dpcpp_ct.common:intel.oneapi.win.dpcpp_debugger:intel.oneapi.win.dpl:intel.oneapi.win.tbb.devel:intel.oneapi.win.dpcpp-compiler:intel.oneapi.win.mkl.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+        curl -SL --output oneapi_hpckit.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/${{ env.HPCKIT_ID }}/${{ env.HPCKIT_NAME }}.exe
+        oneapi_hpckit.exe --silent --extract-only --extract-folder hpckit_extracted
+        hpckit_extracted\bootstrapper.exe --silent --eula=accept --action=install --components=intel.oneapi.win.cpp-compiler:intel.oneapi.win.ifort-compiler:intel.oneapi.win.mpi.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
 
     - name: Install Dependencies
       if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      run: vcpkg install --clean-after-build --triplet x64-windows-static boost exprtk fmt gtest magic-enum poco spdlog tomlplusplus
+      run: |
+        vcpkg install --clean-after-build --triplet x64-windows-static boost exprtk fmt gtest magic-enum poco spdlog tomlplusplus
 
     - name: Build Snapshot Binary
       run: .github/workflows/scripts/build_snapshot.bat
