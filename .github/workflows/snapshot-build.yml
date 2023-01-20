@@ -1,0 +1,41 @@
+name: Caching
+
+on: [push]
+
+env:
+  BASEKIT_ID: 19078
+  BASEKIT_NAME: w_BaseKit_p_2023.0.0.25940_offline
+  HPCKIT_ID: 19085
+  HPCKIT_NAME: w_HPCKit_p_2023.0.0.25931_offline
+  CMAKE_VERSION: 3.25.1
+  NINJA_VERSION: 1.11.1
+  VCPKG_VERSION: 2023.01.09
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Cache oneAPI
+      id: cache-oneapi
+      uses: actions/cache@v3
+      with:
+        path: p
+        key: ${{ runner.os }}
+
+    - name: Install Buildtools
+      run: |
+        .github/workflows/scripts/install_oneapi.bat $BASEKIT_ID $BASEKIT_NAME $HPCKIT_ID $HPCKIT_NAME
+        .github/workflows/scripts/install_buildtools.bat $CMAKE_VERSION $NINJA_VERSION $VCPKG_VERSION
+
+    - name: Build Snapshot Binary
+      run: |
+        .github/workflows/scripts/build_snapshot.bat
+
