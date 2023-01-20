@@ -27,8 +27,10 @@ jobs:
       id: cache-oneapi
       uses: actions/cache@v3
       with:
-        path: p
-        key: ${{ runner.os }}
+        path: |
+          C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat
+          C:\Program Files (x86)\Intel\oneAPI\compiler
+        key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ VCPKG_VERSION }}
 
     - name: Install Buildtools
       run: |
@@ -38,4 +40,4 @@ jobs:
     - name: Build Snapshot Binary
       run: |
         .github/workflows/scripts/build_snapshot.bat
-
+#
