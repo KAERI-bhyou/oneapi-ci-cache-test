@@ -33,11 +33,19 @@ jobs:
         key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ env.VCPKG_VERSION }}
 
     - name: Install Buildtools
-      run: |
-        .github/workflows/scripts/install_oneapi.bat $BASEKIT_ID $BASEKIT_NAME $HPCKIT_ID $HPCKIT_NAME
-        .github/workflows/scripts/install_buildtools.bat $CMAKE_VERSION $NINJA_VERSION $VCPKG_VERSION
+      if: steps.cache-oneapi.outputs.cache-hit != 'true'
+      shell: bash
+      run: .github/workflows/scripts/install_buildtools.bat $CMAKE_VERSION $NINJA_VERSION $VCPKG_VERSION
+
+    - name: Install oneAPI
+      if: steps.cache-oneapi.outputs.cache-hit != 'true'
+      shell: bash
+      run: .github/workflows/scripts/install_oneapi.bat $BASEKIT_ID $BASEKIT_NAME $HPCKIT_ID $HPCKIT_NAME
+
+    - name: Install Dependencies
+      if: steps.cache-oneapi.outputs.cache-hit != 'true'
+      shell: bash
+      run: vcpkg install --clean-after-build --triplet x64-windows-static boost exprtk fmt gtest magic-enum poco spdlog tomlplusplus
 
     - name: Build Snapshot Binary
-      run: |
-        .github/workflows/scripts/build_snapshot.bat
-#
+      run: .github/workflows/scripts/build_snapshot.bat

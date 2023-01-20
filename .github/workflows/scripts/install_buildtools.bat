@@ -17,4 +17,3 @@ tar -xf vcpkg.zip --strip-components=1
 bootstrap-vcpkg.bat -disableMetrics
 setx PATH "C:\opt\cmake\bin;C:\opt\ninja;C:\opt\vcpkg;%PATH%"
 setx VCPKG_ROOT "C:\opt\vcpkg"
-vcpkg install --clean-after-build --triplet x64-windows-static benchmark boost cmakerc exprtk if97 fmt gtest magic-enum metis poco spdlog tomlplusplus
