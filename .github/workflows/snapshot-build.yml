@@ -7,9 +7,8 @@ env:
   BASEKIT_NAME: w_BaseKit_p_2023.0.0.25940_offline
   HPCKIT_ID: 19085
   HPCKIT_NAME: w_HPCKit_p_2023.0.0.25931_offline
-  CMAKE_VERSION: 3.25.1
-  NINJA_VERSION: 1.11.1
   VCPKG_VERSION: 2023.01.09
+  NINJA_VERSION: 1.11.1
 
 jobs:
   build-windows:
@@ -17,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash
+        shell: cmd
 
     steps:
     - name: Checkout
@@ -34,17 +33,14 @@ jobs:
 
     - name: Install Buildtools
       if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      shell: bash
-      run: .github/workflows/scripts/install_buildtools.bat $CMAKE_VERSION $NINJA_VERSION $VCPKG_VERSION
+      run: .github/workflows/scripts/install_buildtools.bat $NINJA_VERSION $VCPKG_VERSION
 
     - name: Install oneAPI
       if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      shell: bash
       run: .github/workflows/scripts/install_oneapi.bat $BASEKIT_ID $BASEKIT_NAME $HPCKIT_ID $HPCKIT_NAME
 
     - name: Install Dependencies
       if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      shell: bash
       run: vcpkg install --clean-after-build --triplet x64-windows-static boost exprtk fmt gtest magic-enum poco spdlog tomlplusplus
 
     - name: Build Snapshot Binary
