@@ -25,8 +25,8 @@ jobs:
       - name: Cache oneAPI
         id: cache-oneapi
         uses: actions/cache@v3
-        path: C:\vcpkg\vcpkg.exe
         with:
+          path: C:\vcpkg\vcpkg.exe
           key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ env.VCPKG_VERSION }}
 
       - name: Install vcpkg
