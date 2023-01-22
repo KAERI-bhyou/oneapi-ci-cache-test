@@ -32,11 +32,15 @@ jobs:
           C:\Program Files (x86)\Intel\oneAPI\compiler
         key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ env.VCPKG_VERSION }}
 
-    - name: Install Dependencies
-      if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      run: |
-        vcpkg install --clean-after-build --triplet x64-windows-static benchmark boost-algorithm boost-program-options cmakerc exprtk if97 fmt gtest magic-enum metis poco spdlog tomlplusplus
+    # - name: Install Dependencies
+    #   if: steps.cache-oneapi.outputs.cache-hit != 'true'
+    #   run: |
+    #     vcpkg install --clean-after-build --triplet x64-windows-static benchmark boost-algorithm boost-program-options cmakerc exprtk if97 fmt gtest magic-enum metis poco spdlog tomlplusplus
 
+    - name: Set Environment Variables
+      run: |
+        setx VCPKG_ROOT "C:\vcpkg"
+        set
     # - name: Install oneAPI
     #   if: steps.cache-oneapi.outputs.cache-hit != 'true'
     #   run: |
