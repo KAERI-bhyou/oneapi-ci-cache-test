@@ -23,19 +23,19 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # - name: Cache oneAPI
-    #   id: cache-oneapi
-    #   uses: actions/cache@v3
-    #   with:
-    #     path: |
-    #       C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat
-    #       C:\Program Files (x86)\Intel\oneAPI\compiler
-    #     key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ env.VCPKG_VERSION }}
+    - name: Cache oneAPI
+      id: cache-oneapi
+      uses: actions/cache@v3
+      with:
+        path: |
+          C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat
+          C:\Program Files (x86)\Intel\oneAPI\compiler
+        key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ env.VCPKG_VERSION }}
 
-    # - name: Install Dependencies
-    #   if: steps.cache-oneapi.outputs.cache-hit != 'true'
-    #   run: |
-    #     vcpkg install --clean-after-build --triplet x64-windows-static boost exprtk fmt gtest magic-enum poco spdlog tomlplusplus
+    - name: Install Dependencies
+      if: steps.cache-oneapi.outputs.cache-hit != 'true'
+      run: |
+        vcpkg install --clean-after-build --triplet x64-windows-static benchmark boost-algorithm boost-program-options cmakerc exprtk if97 fmt gtest magic-enum metis poco spdlog tomlplusplus
 
     # - name: Install oneAPI
     #   if: steps.cache-oneapi.outputs.cache-hit != 'true'
@@ -55,11 +55,6 @@ jobs:
     #     hpckit_extracted\bootstrapper.exe --silent --eula=accept --action=install --components=intel.oneapi.win.cpp-compiler:intel.oneapi.win.mpi.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
     #     del /s /q hpckit_extracted
 
-    - name: Check path
-      shell: bash
-      run: |
-        which vcpkg
-        which cmake
-        
+
     - name: Build Snapshot Binary
       run: .github/workflows/scripts/build_snapshot.bat
