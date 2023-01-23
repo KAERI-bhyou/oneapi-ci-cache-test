@@ -63,3 +63,6 @@ jobs:
         run: |
           call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
           vcpkg list
+          icx --version
+          ifx 
+          mpiexec --version
