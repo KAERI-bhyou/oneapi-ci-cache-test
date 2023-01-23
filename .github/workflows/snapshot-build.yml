@@ -2,17 +2,17 @@ name: Caching
 
 on: [push]
 
-env:
-  BASEKIT_ID: 19078
-  BASEKIT_NAME: w_BaseKit_p_2023.0.0.25940_offline
-  HPCKIT_ID: 19085
-  HPCKIT_NAME: w_HPCKit_p_2023.0.0.25931_offline
-  VCPKG_VERSION: 2023.01.09
-  VCPKG_ROOT: .\vcpkg
-
 jobs:
   build-windows:
     runs-on: windows-latest
+
+    env:
+      BASEKIT_ID: 19078
+      BASEKIT_NAME: w_BaseKit_p_2023.0.0.25940_offline
+      HPCKIT_ID: 19085
+      HPCKIT_NAME: w_HPCKit_p_2023.0.0.25931_offline
+      VCPKG_VERSION: 2023.01.09
+      VCPKG_ROOT: .\vcpkg
 
     defaults:
       run:
@@ -27,28 +27,39 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
+            C:\Program Files (x86)\Intel\oneAPI\setvars-vcvarsall.bat
             C:\Program Files (x86)\Intel\oneAPI\setvars.bat
             C:\Program Files (x86)\Intel\oneAPI\compiler
+            C:\Program Files (x86)\Intel\oneAPI\mkl
+            C:\Program Files (x86)\Intel\oneAPI\tbb
+            C:\Program Files (x86)\Intel\oneAPI\mpi
+            C:\vcpkg\installed
           key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ env.VCPKG_VERSION }}
 
-      - name: Install oneAPI
+      - name: Install Dependencies
+        if: steps.cache-oneapi.outputs.cache-hit != 'true'
+        run: |
+          vcpkg install --clean-after-build --triplet x64-windows-static benchmark boost-algorithm boost-program-options cmakerc exprtk if97 fmt gtest magic-enum metis poco spdlog tomlplusplus
+
+      - name: Install oneAPI BaseKit
         if: steps.cache-oneapi.outputs.cache-hit != 'true'
         run: |
           curl -SL --output oneapi_basekit.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/${{ env.BASEKIT_ID }}/${{ env.BASEKIT_NAME }}.exe
           oneapi_basekit.exe --silent --extract-only --extract-folder basekit_extracted
           del /q oneapi_basekit.exe
-          basekit_extracted\bootstrapper.exe --silent --eula=accept --action=install --install-dir=./oneapi --components=intel.oneapi.win.tbb.devel:intel.oneapi.win.dpcpp-compiler:intel.oneapi.win.mkl.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          basekit_extracted\bootstrapper.exe --silent --eula=accept --action=install --components=intel.oneapi.win.tbb.devel:intel.oneapi.win.dpcpp-compiler:intel.oneapi.win.mkl.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
           del /s /q basekit_extracted
 
-      # - name: Install oneAPI
-      #   if: steps.cache-oneapi.outputs.cache-hit != 'true'
-      #   run: |
-      #     curl -SL --output oneapi_hpckit.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/${{ env.HPCKIT_ID }}/${{ env.HPCKIT_NAME }}.exe
-      #     oneapi_hpckit.exe --silent --extract-only --extract-folder hpckit_extracted
-      #     del /q oneapi_hpckit.exe
-      #     hpckit_extracted\bootstrapper.exe --silent --eula=accept --action=install --install-dir=./oneapi --components=intel.oneapi.win.cpp-compiler:intel.oneapi.win.mpi.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
-      #     del /s /q hpckit_extracted
+      - name: Install oneAPI HPCKit
+        if: steps.cache-oneapi.outputs.cache-hit != 'true'
+        run: |
+          curl -SL --output oneapi_hpckit.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/${{ env.HPCKIT_ID }}/${{ env.HPCKIT_NAME }}.exe
+          oneapi_hpckit.exe --silent --extract-only --extract-folder hpckit_extracted
+          del /q oneapi_hpckit.exe
+          hpckit_extracted\bootstrapper.exe --silent --eula=accept --action=install --components=intel.oneapi.win.cpp-compiler:intel.oneapi.win.mpi.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+          del /s /q hpckit_extracted
 
       - name: Build Snapshot Binary
         run: |
           call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
+          vcpkg list
