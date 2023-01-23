@@ -26,22 +26,10 @@ jobs:
         id: cache-oneapi
         uses: actions/cache@v3
         with:
-          path: C:\vcpkg\vcpkg.exe
+          path: |
+            C:\Program Files (x86)\Intel\oneAPI\setvars.bat
+            C:\Program Files (x86)\Intel\oneAPI\compiler
           key: ${{ runner.os }}-${{ env.BASEKIT_ID }}-${{ env.HPCKIT_ID }}-${{ env.VCPKG_VERSION }}
-
-      - name: Install vcpkg
-        if: steps.cache-oneapi.outputs.cache-hit != 'true'
-        run: |
-          mkdir vcpkg
-          cd vcpkg
-          curl -SL --output vcpkg.zip https://github.com/microsoft/vcpkg/archive/refs/tags/${{ env.VCPKG_VERSION }}.zip
-          tar -xf vcpkg.zip --strip-components=1
-          bootstrap-vcpkg.bat -disableMetrics
-
-      - name: Install Dependencies
-        if: steps.cache-oneapi.outputs.cache-hit != 'true'
-        run: |
-          .\vcpkg\vcpkg install --clean-after-build --triplet x64-windows-static benchmark boost-algorithm boost-program-options cmakerc exprtk if97 fmt gtest magic-enum metis poco spdlog tomlplusplus
 
       - name: Install oneAPI
         if: steps.cache-oneapi.outputs.cache-hit != 'true'
@@ -52,16 +40,15 @@ jobs:
           basekit_extracted\bootstrapper.exe --silent --eula=accept --action=install --install-dir=./oneapi --components=intel.oneapi.win.tbb.devel:intel.oneapi.win.dpcpp-compiler:intel.oneapi.win.mkl.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
           del /s /q basekit_extracted
 
-      - name: Install oneAPI
-        if: steps.cache-oneapi.outputs.cache-hit != 'true'
-        run: |
-          curl -SL --output oneapi_hpckit.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/${{ env.HPCKIT_ID }}/${{ env.HPCKIT_NAME }}.exe
-          oneapi_hpckit.exe --silent --extract-only --extract-folder hpckit_extracted
-          del /q oneapi_hpckit.exe
-          hpckit_extracted\bootstrapper.exe --silent --eula=accept --action=install --install-dir=./oneapi --components=intel.oneapi.win.cpp-compiler:intel.oneapi.win.mpi.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
-          del /s /q hpckit_extracted
+      # - name: Install oneAPI
+      #   if: steps.cache-oneapi.outputs.cache-hit != 'true'
+      #   run: |
+      #     curl -SL --output oneapi_hpckit.exe https://registrationcenter-download.intel.com/akdlm/IRC_NAS/${{ env.HPCKIT_ID }}/${{ env.HPCKIT_NAME }}.exe
+      #     oneapi_hpckit.exe --silent --extract-only --extract-folder hpckit_extracted
+      #     del /q oneapi_hpckit.exe
+      #     hpckit_extracted\bootstrapper.exe --silent --eula=accept --action=install --install-dir=./oneapi --components=intel.oneapi.win.cpp-compiler:intel.oneapi.win.mpi.devel -p=NEED_VS2017_INTEGRATION=0 -p=NEED_VS2019_INTEGRATION=0 -p=NEED_VS2022_INTEGRATION=0
+      #     del /s /q hpckit_extracted
 
       - name: Build Snapshot Binary
         run: |
-          .\oneapi\setvars.bat
-          %VCPKG_ROOT%\vcpkg list
+          call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
